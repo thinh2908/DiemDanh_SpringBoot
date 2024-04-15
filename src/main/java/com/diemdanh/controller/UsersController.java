@@ -46,7 +46,7 @@ public class UsersController {
 
         HttpHeaders responseHeaders = new HttpHeaders();
         responseHeaders.set("Content-Range",
-                "posts 0-1/1");
+                "users 0-1/"+users.size());
 
         return ResponseEntity.ok().headers(responseHeaders).body(userResponseList);
 //        return ResponseEntity.ok(users);
@@ -74,7 +74,6 @@ public class UsersController {
 
     @PutMapping("/{id}")
     public  ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody UserRequest updatedUserRequest){
-        System.out.println(id);
 
         Employee employee = employeeService.getEmployeeById(updatedUserRequest.getEmployeeId());
         Users manager = (updatedUserRequest.getManagerId() != null) ?

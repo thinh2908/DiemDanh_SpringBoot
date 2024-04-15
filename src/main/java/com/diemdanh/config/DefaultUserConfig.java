@@ -37,7 +37,7 @@ public class DefaultUserConfig {
         Employee employee = new Employee();
         employee.setName("Nguyen Van A");
         employee.setTeam("Team A");
-        employee.setJoiningDay(CoverStringToTime.cover("2024-04-02T08:30"));
+        employee.setJoiningDay(CoverStringToTime.cover("2024-04-15T22:01:11.363Z"));
         employeeService.createEmployee(employee);
 
         Users defaultAdmin = new Users();

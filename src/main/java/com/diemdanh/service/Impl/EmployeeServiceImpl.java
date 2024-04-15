@@ -31,4 +31,17 @@ public class EmployeeServiceImpl implements IEmployee {
         List<Employee> employeeList = employeeRepository.findAll();
         return employeeList;
     }
+
+    @Override
+    public Employee updateEmployee(Employee employee) {
+        employeeRepository.save(employee);
+        return employee;
+    }
+
+    @Override
+    public Employee deleteEmployee(Long id) {
+        Employee employeeObj = employeeRepository.findById(id).get();
+        employeeRepository.deleteById(id);
+        return employeeObj;
+    }
 }

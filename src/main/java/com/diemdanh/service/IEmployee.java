@@ -8,4 +8,6 @@ public interface IEmployee {
     public Employee createEmployee(Employee employee);
     public List<Employee> listEmployee();
     public Employee getEmployeeById(Long id);
+    public Employee updateEmployee(Employee employee);
+    public Employee deleteEmployee(Long id);
 }
