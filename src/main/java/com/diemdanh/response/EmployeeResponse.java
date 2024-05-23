@@ -10,6 +10,8 @@ public class EmployeeResponse {
     private String team;
     private String joiningDay;
     private String createdAt;
+    private String avatar;
+    private String position;
     public Long getId() {
         return id;
     }
@@ -50,11 +52,29 @@ public class EmployeeResponse {
         this.createdAt = createdAt;
     }
 
+    public String getAvatar() {
+        return avatar;
+    }
+
+    public void setAvatar(String avatar) {
+        this.avatar = avatar;
+    }
+
+    public String getPosition() {
+        return position;
+    }
+
+    public void setPosition(String position) {
+        this.position = position;
+    }
+
     public EmployeeResponse(Employee employee) {
         this.id = employee.getId();
         this.name = employee.getName();
         this.team = employee.getTeam();
         this.joiningDay = employee.getJoiningDay().toString();
         this.createdAt = employee.getCreatedAt().toString();
+        this.avatar = employee.getAvatar();
+        this.position = employee.getPosition();
     }
 }

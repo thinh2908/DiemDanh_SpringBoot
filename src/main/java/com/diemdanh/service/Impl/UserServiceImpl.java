@@ -1,11 +1,15 @@
 package com.diemdanh.service.Impl;
 
 import com.diemdanh.model.Employee;
+import com.diemdanh.model.Roles;
 import com.diemdanh.model.Users;
 import com.diemdanh.repo.UsersRepository;
 import com.diemdanh.service.IUsers;
+import org.apache.catalina.Role;
 import org.apache.catalina.User;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -50,6 +54,8 @@ public class UserServiceImpl implements IUsers {
     @Override
     @Transactional
     public Users updateUser(Users user) {
+        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         usersRepository.save(user);
         return user;
     }
@@ -66,5 +72,32 @@ public class UserServiceImpl implements IUsers {
     public List<Users> getByEmployee(Employee employee) {
         List<Users> usersList = usersRepository.findByEmployee(employee);
         return usersList ;
+    }
+
+    @Override
+    public List<Users> listAllByRole(Roles role) {
+        List<Users> listUser = usersRepository.findByRole(role);
+        return listUser;
+    }
+
+    @Override
+    public List<Users> ListUserById(List<Long> listId) {
+        List<Users> listUser = usersRepository.findAllById(listId);
+        return  listUser;
+    }
+
+    @Override
+    public Page<Users> findAll(Pageable pageable) {
+        return usersRepository.findAll(pageable);
+    }
+
+    @Override
+    public Page<Users> findAllByUserName(String username, Pageable page) {
+        return usersRepository.findByUsernameContaining(username,page);
+    }
+
+    @Override
+    public List<Users> listAllByManager(Users user) {
+        return usersRepository.findByManager(user);
     }
 }

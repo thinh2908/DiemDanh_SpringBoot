@@ -1,5 +1,7 @@
 package com.diemdanh.model;
 
+import com.diemdanh.request.VacationRequest;
+
 import javax.persistence.*;
 
 @Entity
@@ -15,6 +17,10 @@ public class Vacation {
 
     public Long getId() {
         return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getReason() {
@@ -47,5 +53,15 @@ public class Vacation {
 
     public void setEndDays(String endDays) {
         this.endDays = endDays;
+    }
+
+    public Vacation(VacationRequest vacationRequest) {
+        this.reason = vacationRequest.getReason();
+        this.days = vacationRequest.getDays();
+        this.startDay = vacationRequest.getStartDay();
+        this.endDays = vacationRequest.getEndDays();
+    }
+
+    public Vacation() {
     }
 }

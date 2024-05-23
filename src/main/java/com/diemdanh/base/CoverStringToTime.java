@@ -11,4 +11,11 @@ public class CoverStringToTime {
         LocalDateTime date = LocalDateTime.parse(dateString,formatter);
         return date;
     }
+
+    public static LocalDateTime cover2(String dateString){
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+
+        LocalDateTime date = LocalDateTime.parse(dateString,formatter);
+        return date;
+    }
 }

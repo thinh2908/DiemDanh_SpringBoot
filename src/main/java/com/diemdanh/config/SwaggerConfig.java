@@ -35,12 +35,12 @@ public class SwaggerConfig {
 
     private ApiInfo metaData() {
         return new ApiInfoBuilder()
-                .title("TMA Spring Boot demo REST API")
+                .title("Diem Danh Nhan Vien")
                 .description("\"Attendant System\"")
                 .version("1.0.0")
                 .license("Apache License Version 2.0")
                 .licenseUrl("https://www.apache.org/licenses/LICENSE-2.0\"")
-                .contact(new Contact("Thien Vo", "https://www.tmasolutions.com/", "thinh2908@gmail.com"))
+                .contact(new Contact("Thinh Nguyen", "https://www.google.com", "thinh2908@gmail.com"))
                 .build();
     }
 

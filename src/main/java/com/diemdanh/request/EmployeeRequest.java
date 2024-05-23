@@ -1,5 +1,7 @@
 package com.diemdanh.request;
 
+import org.springframework.web.multipart.MultipartFile;
+
 import java.time.LocalDateTime;
 
 public class EmployeeRequest {
@@ -7,7 +9,8 @@ public class EmployeeRequest {
     private String name;
     private String team;
     private String joiningDay;
-
+    private MultipartFile avatar;
+    private String position;
     public String getName() {
         return name;
     }
@@ -30,5 +33,21 @@ public class EmployeeRequest {
 
     public void setJoiningDay(String joiningDay) {
         this.joiningDay = joiningDay;
+    }
+
+    public MultipartFile getAvatar() {
+        return avatar;
+    }
+
+    public void setAvatar(MultipartFile avatar) {
+        this.avatar = avatar;
+    }
+
+    public String getPosition() {
+        return position;
+    }
+
+    public void setPosition(String position) {
+        this.position = position;
     }
 }

@@ -1,28 +1,18 @@
-package com.diemdanh.model;
+package com.diemdanh.response;
 
+import com.diemdanh.model.Leaving;
 
-import com.diemdanh.request.LeavingRequest;
-
-import javax.persistence.*;
-
-@Entity
-@Table(name = "leaving")
-public class Leaving {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+public class LeavingResponse {
     private Long id;
-    @ManyToOne
-    @JoinColumn(referencedColumnName = "id")
-    private Users user;
+    private Long userId;
     private float days;
     private String startDay;
     private String endDay;
     private String reason;
     private Long leavingType;
     private Long status;
-    @ManyToOne
-    @JoinColumn(referencedColumnName = "id")
-    private Users manager;
+    private Long managerId;
+
     public Long getId() {
         return id;
     }
@@ -31,12 +21,12 @@ public class Leaving {
         this.id = id;
     }
 
-    public Users getUser() {
-        return user;
+    public Long getUserId() {
+        return userId;
     }
 
-    public void setUser(Users user) {
-        this.user = user;
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
 
     public float getDays() {
@@ -87,23 +77,23 @@ public class Leaving {
         this.status = status;
     }
 
-    public Users getManager() {
-        return manager;
+    public Long getManagerId() {
+        return managerId;
     }
 
-    public void setManager(Users manager) {
-        this.manager = manager;
+    public void setManagerId(Long managerId) {
+        this.managerId = managerId;
     }
 
-    public Leaving(LeavingRequest leavingRequest) {
-        this.days = leavingRequest.getDays();
-        this.startDay = leavingRequest.getStartDay();
-        this.endDay = leavingRequest.getEndDay();
-        this.reason = leavingRequest.getReason();
-        this.status = leavingRequest.getStatus();
-        this.leavingType = leavingRequest.getLeavingType();
-    }
-
-    public Leaving() {
+    public LeavingResponse(Leaving leaving) {
+        this.days = leaving.getDays();
+        this.startDay = leaving.getStartDay();
+        this.endDay = leaving.getEndDay();
+        this.reason = leaving.getReason();
+        this.leavingType = leaving.getLeavingType();
+        this.status = leaving.getStatus();
+        this.id = leaving.getId();
+        this.userId = leaving.getUser().getId();
+        this.managerId = leaving.getManager().getId();
     }
 }

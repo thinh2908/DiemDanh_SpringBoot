@@ -15,7 +15,9 @@ public class Employee {
     private Long id;
     private String name;
     private String team;
+    private String position;
     private LocalDateTime joiningDay;
+    private String avatar;
 
     @OneToOne(mappedBy = "employee")
     private Users user;
@@ -74,9 +76,26 @@ public class Employee {
     public Employee() {
     }
 
+    public String getAvatar() {
+        return avatar;
+    }
+
+    public void setAvatar(String avatar) {
+        this.avatar = avatar;
+    }
+
+    public String getPosition() {
+        return position;
+    }
+
+    public void setPosition(String position) {
+        this.position = position;
+    }
+
     public Employee(EmployeeRequest employeeRequest){
         this.name = employeeRequest.getName();
         this.joiningDay = CoverStringToTime.cover(employeeRequest.getJoiningDay());
         this.team = employeeRequest.getTeam();
+        this.position = employeeRequest.getPosition();
     }
 }
