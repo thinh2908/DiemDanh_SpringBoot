@@ -23,4 +23,6 @@ public interface IUsers {
 
     public Page<Users> findAll(Pageable pageable);
     public Page<Users> findAllByUserName(String username, Pageable page);
+    public Long countAll();
+    public Long countByRoles(Roles role);
 }

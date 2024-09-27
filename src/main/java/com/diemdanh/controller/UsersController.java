@@ -3,16 +3,15 @@ package com.diemdanh.controller;
 
 import com.diemdanh.Utils.SessionHelper;
 import com.diemdanh.base.BaseFunction;
+import com.diemdanh.base.MessageString;
 import com.diemdanh.factory.FilesStorageService;
-import com.diemdanh.model.Book;
-import com.diemdanh.model.Employee;
-import com.diemdanh.model.Roles;
-import com.diemdanh.model.Users;
+import com.diemdanh.model.*;
 import com.diemdanh.request.ChangePasswordRequest;
 import com.diemdanh.request.UserRequest;
 import com.diemdanh.response.EmployeeResponse;
 import com.diemdanh.response.UserResponse;
 import com.diemdanh.service.Impl.EmployeeServiceImpl;
+import com.diemdanh.service.Impl.MessageServiceImpl;
 import com.diemdanh.service.Impl.RolesServiceImpl;
 import com.diemdanh.service.Impl.UserServiceImpl;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -53,6 +52,8 @@ public class UsersController {
     private RolesServiceImpl rolesService;
     @Autowired
     FilesStorageService filesStorageService;
+    @Autowired
+    private MessageServiceImpl messageService;
 
     @GetMapping("")
     public ResponseEntity<?> listAllUser(@RequestParam(required = false,value = "sort") String sort,
@@ -92,7 +93,7 @@ public class UsersController {
         //Xu ly header
         HttpHeaders responseHeaders = new HttpHeaders();
         responseHeaders.set("Content-Range",
-                "users "+ rangeList.get(0) + "-" + rangeList.get(1) + "/" + userService.listUser().size());
+                "users "+ rangeList.get(0) + "-" + rangeList.get(1) + "/" + pageUser.getTotalElements());
         return  ResponseEntity.ok().headers(responseHeaders).body(userResponses);
     }
     @GetMapping("/getManyById")
@@ -123,6 +124,10 @@ public class UsersController {
 
         if (countEmployee == 1) return ResponseEntity.badRequest().build();
         Users userObj = userService.createUser(new Users(userRequest,employee,manager,role));
+
+        Message message = new Message(MessageString.SUCCESS_CREATE_USER() + userObj.getUsername(),"success",SessionHelper.getCurrentUser());
+        messageService.createMessage(message);
+
         return ResponseEntity.ok(new UserResponse(userObj));
     }
 
@@ -139,14 +144,26 @@ public class UsersController {
         updateUserObj.setEmployee(employee);
         updateUserObj.setManager(manager);
         updateUserObj.setRole(role);
-        updateUserObj.setPassword(updatedUserRequest.getPassword());
+        System.out.println(updatedUserRequest.getPassword());
+        System.out.println(updateUserObj.getPassword());
+        if(updatedUserRequest.getPassword()!=null) {
+            BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+            updatedUserRequest.setPassword(passwordEncoder.encode(updatedUserRequest.getPassword()));
+            updateUserObj.setPassword(updatedUserRequest.getPassword());
+        }
         Users userObj = userService.updateUser(updateUserObj);
+
+        Message message = new Message(MessageString.SUCCESS_UPDATE_USER() + userObj.getUsername(),"success",SessionHelper.getCurrentUser());
+        messageService.createMessage(message);
+
         return ResponseEntity.ok(new UserResponse(userObj));
     }
     @DeleteMapping("/{id}")
     public  ResponseEntity<?> deleteUser(@PathVariable Long id){
         Users userObj = userService.deleteUser(id);
-        return ResponseEntity.ok().build();
+        Message message = new Message(MessageString.SUCCESS_DELETE_USER() + userObj.getUsername(),"success",SessionHelper.getCurrentUser());
+        messageService.createMessage(message);
+        return ResponseEntity.ok(new UserResponse(userObj));
     }
 
     @PostMapping("/change-password")

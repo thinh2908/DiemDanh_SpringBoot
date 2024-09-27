@@ -71,4 +71,9 @@ public class EmployeeServiceImpl implements IEmployee {
         List<Employee> employeeList = employeeRepository.findAllById(listId);
         return employeeList;
     }
+
+    @Override
+    public Long countAll() {
+        return employeeRepository.count();
+    }
 }

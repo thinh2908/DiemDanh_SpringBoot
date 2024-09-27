@@ -1,16 +1,23 @@
 package com.diemdanh.controller;
 
 import com.diemdanh.Utils.SessionHelper;
+import com.diemdanh.base.BaseFunction;
 import com.diemdanh.base.CoverStringToTime;
 import com.diemdanh.model.Employee;
 import com.diemdanh.model.Leaving;
 import com.diemdanh.model.Users;
+import com.diemdanh.model.Vacation;
 import com.diemdanh.request.LeavingRequest;
 import com.diemdanh.response.LeavingResponse;
+import com.diemdanh.response.VacationResponse;
 import com.diemdanh.service.Impl.EmployeeServiceImpl;
 import com.diemdanh.service.Impl.LeavingServiceImpl;
 import com.diemdanh.service.Impl.UserServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -34,16 +41,53 @@ public class LeavingController {
     private EmployeeServiceImpl employeeService;
 
     @GetMapping("")
-    public ResponseEntity<?> listLeavingAll(){
+    public ResponseEntity<?> listLeavingAll(@RequestParam(required = false,value = "sort") String sort,
+                                            @RequestParam(required = false,value = "range") String range){
+
+        Pageable paging = null;
+        Sort sortObject = Sort.by(Sort.Direction.DESC,"id");
+
+        List<Integer> rangeList = BaseFunction.stringToListInteger(range);
+        List<String> sortList = BaseFunction.stringToListString(sort);
+
         Users currentUser = SessionHelper.getCurrentUser();
-        List<Leaving> leavingList = leavingService.listLeavingByUser(currentUser);
-        List<LeavingResponse> leavingResponseList = leavingList.stream().map(LeavingResponse::new)
-                                                    .collect(Collectors.toList());
+        //Xu ly body
+        if (sort != null && !sort.isEmpty()) {
+            sortObject = Sort.by(sortList.get(1).equals("ASC") ? Sort.Direction.ASC : Sort.Direction.DESC,sortList.get(0));
+        }
+
+
+        if (rangeList != null && rangeList.size() == 2) {
+            paging = PageRequest.of(Math.round(rangeList.get(0)/(rangeList.get(1) - rangeList.get(0) + 1)),
+                    rangeList.get(1) - rangeList.get(0) + 1,
+                    sortObject);
+        }
+        Page<Leaving> pageLeaving;
+        pageLeaving= leavingService.findByUser(currentUser,paging);
+
+        List<Leaving> leavingList;
+        leavingList = pageLeaving.getContent();
+
+        List<LeavingResponse> vacationResponses = leavingList.stream()
+                .map(LeavingResponse::new).collect(Collectors.toList());
+
+
+        //Xu ly header
+
         HttpHeaders responseHeaders = new HttpHeaders();
         responseHeaders.set("Content-Range",
-                "users 0-1/"+leavingList.size());
+                "leaving "+ rangeList.get(0) + "-" + rangeList.get(1) + "/" + pageLeaving.getTotalElements());
+        return  ResponseEntity.ok().headers(responseHeaders).body(vacationResponses);
 
-        return ResponseEntity.ok().headers(responseHeaders).body(leavingResponseList);
+//        List<Leaving> leavingList = leavingService.listLeavingByUser(currentUser);
+//        List<LeavingResponse> leavingResponseList = leavingList.stream().map(LeavingResponse::new)
+//                                                    .collect(Collectors.toList());
+//        HttpHeaders responseHeaders = new HttpHeaders();
+//        responseHeaders.set("Content-Range",
+//                "users 0-1/"+leavingList.size());
+//
+//        return ResponseEntity.ok().headers(responseHeaders).body(leavingResponseList);
+
     }
 
     @GetMapping("/day")

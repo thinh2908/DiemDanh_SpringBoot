@@ -3,10 +3,6 @@ package com.diemdanh.model;
 import javax.persistence.*;
 
 
-/**
- * The persistent class for the book database table.
- *
- */
 @Entity
 @Table(name = "book")
 public class Book {

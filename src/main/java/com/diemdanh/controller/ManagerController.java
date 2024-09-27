@@ -1,16 +1,14 @@
 package com.diemdanh.controller;
 
 import com.diemdanh.Utils.SessionHelper;
+import com.diemdanh.base.BaseFunction;
 import com.diemdanh.model.Employee;
 import com.diemdanh.model.Leaving;
 import com.diemdanh.model.Roles;
 import com.diemdanh.model.Users;
 import com.diemdanh.response.LeavingResponse;
 import com.diemdanh.response.UserResponse;
-import com.diemdanh.service.Impl.EmployeeServiceImpl;
-import com.diemdanh.service.Impl.LeavingServiceImpl;
-import com.diemdanh.service.Impl.RolesServiceImpl;
-import com.diemdanh.service.Impl.UserServiceImpl;
+import com.diemdanh.service.Impl.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -19,6 +17,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
@@ -43,6 +42,9 @@ public class ManagerController {
 
     @Autowired
     private LeavingServiceImpl leavingService ;
+
+    @Autowired
+    private MessageServiceImpl messageService;
 
     @GetMapping("")
     public ResponseEntity<?> listAllManager() {
@@ -118,5 +120,33 @@ public class ManagerController {
         JsonNode json  = mapper.readTree(content);
 
         return ResponseEntity.ok().body(json);
+    }
+
+    @GetMapping("/count-info")
+    public ResponseEntity<?> countInfo() throws JsonProcessingException {
+        Roles role= rolesService.getRoleById(Long.valueOf(2));
+
+        Long employeeTotal = employeeService.countAll();
+        Long userTotal = userService.countAll();
+        Long managerTotal = userService.countByRoles(role);
+        Long messageTotal = messageService.countAll();
+
+        ObjectMapper mapper = new ObjectMapper();
+        String content = String.format("{\"employees\": %d ,\"users\": %d ,\"managers\": %d ,\"messages\": %d }",
+                employeeTotal, userTotal, managerTotal, messageTotal);
+        JsonNode json  = mapper.readTree(content);
+
+        return ResponseEntity.ok(json);
+    }
+
+    @GetMapping("/getManyById")
+    public ResponseEntity<?> listAllUserById(@RequestParam(required = false,value = "id") String ids) {
+        List<Users> users = userService.ListUserById(BaseFunction.convertStringToListLong(ids));
+        List<UserResponse> userResponseList = users.stream()
+                .map(UserResponse::new)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok().body(userResponseList);
+//        return ResponseEntity.ok(users);
     }
 }

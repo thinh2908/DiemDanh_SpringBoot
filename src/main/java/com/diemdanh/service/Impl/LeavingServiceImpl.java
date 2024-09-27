@@ -2,9 +2,12 @@ package com.diemdanh.service.Impl;
 
 import com.diemdanh.model.Leaving;
 import com.diemdanh.model.Users;
+import com.diemdanh.model.Vacation;
 import com.diemdanh.repo.LeavingRepository;
 import com.diemdanh.service.ILeaving;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -70,5 +73,21 @@ public class LeavingServiceImpl implements ILeaving {
     @Override
     public List<Leaving> listLeavingByUserAndLeavingType(Users users, Long leavingType) {
         return leavingRepository.findByUserAndLeavingType(users,leavingType);
+    }
+
+    @Override
+    public Page<Leaving> findAll(Pageable pageable) {
+        Page<Leaving> leavingList = leavingRepository.findAll(pageable);
+        return leavingList;
+    }
+
+    @Override
+    public Page<Leaving> findByUser(Users user, Pageable pageable) {
+        return leavingRepository.findByUser(user,pageable);
+    }
+
+    @Override
+    public Page<Leaving> findByManager(Users user, Pageable pageable) {
+        return leavingRepository.findByManager(user,pageable);
     }
 }

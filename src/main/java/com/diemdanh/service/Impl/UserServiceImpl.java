@@ -1,13 +1,18 @@
 package com.diemdanh.service.Impl;
 
+import com.diemdanh.model.Attendant;
 import com.diemdanh.model.Employee;
 import com.diemdanh.model.Roles;
 import com.diemdanh.model.Users;
+import com.diemdanh.repo.AttendantRepository;
+import com.diemdanh.repo.LeavingRepository;
+import com.diemdanh.repo.MessageRepository;
 import com.diemdanh.repo.UsersRepository;
 import com.diemdanh.service.IUsers;
 import org.apache.catalina.Role;
 import org.apache.catalina.User;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -21,6 +26,14 @@ public class UserServiceImpl implements IUsers {
     @Autowired
     private UsersRepository usersRepository;
 
+    @Autowired
+    private AttendantRepository attendantRepository;
+
+    @Autowired
+    private LeavingRepository leavingRepository;
+
+    @Autowired
+    private MessageRepository messageRepository;
     @Override
     @Transactional
     public Users createUser(Users user) {
@@ -54,8 +67,6 @@ public class UserServiceImpl implements IUsers {
     @Override
     @Transactional
     public Users updateUser(Users user) {
-        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
         usersRepository.save(user);
         return user;
     }
@@ -64,6 +75,10 @@ public class UserServiceImpl implements IUsers {
     @Transactional
     public Users deleteUser(Long id) {
         Users userObj= usersRepository.findById(id).get();
+        attendantRepository.deleteInBulkByUserId(id);
+        leavingRepository.deleteInBulkByUserId(id);
+        messageRepository.deleteInBulkByUserId(id);
+        usersRepository.setManagerNULL(id);
         usersRepository.deleteById(id);
         return userObj;
     }
@@ -99,5 +114,15 @@ public class UserServiceImpl implements IUsers {
     @Override
     public List<Users> listAllByManager(Users user) {
         return usersRepository.findByManager(user);
+    }
+
+    @Override
+    public Long countAll() {
+        return usersRepository.count();
+    }
+
+    @Override
+    public Long countByRoles(Roles role) {
+        return Long.valueOf(usersRepository.findByRole(role).size());
     }
 }

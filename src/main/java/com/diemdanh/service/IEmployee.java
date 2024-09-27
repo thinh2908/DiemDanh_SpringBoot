@@ -16,4 +16,5 @@ public interface IEmployee {
     public Page<Employee> findAll(Pageable pageable);
     public Page<Employee> findAllByName(String name, Pageable page);
     public List<Employee> findEmployeeById(Long id);
+    public Long countAll();
 }

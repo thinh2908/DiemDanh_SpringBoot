@@ -4,14 +4,17 @@ import com.diemdanh.Utils.SessionHelper;
 import com.diemdanh.base.BaseFunction;
 import com.diemdanh.base.Constants;
 import com.diemdanh.base.CoverStringToTime;
+import com.diemdanh.base.MessageString;
 import com.diemdanh.factory.FilesStorageService;
 import com.diemdanh.model.Attendant;
 import com.diemdanh.model.Employee;
+import com.diemdanh.model.Message;
 import com.diemdanh.model.Users;
 import com.diemdanh.request.AttendantRequest;
 import com.diemdanh.response.AttendantResponse;
 import com.diemdanh.service.Impl.AttendantServiceImpl;
 import com.diemdanh.service.Impl.EmployeeServiceImpl;
+import com.diemdanh.service.Impl.MessageServiceImpl;
 import com.diemdanh.service.Impl.UserServiceImpl;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -47,6 +50,8 @@ public class AttendantController {
     private UserServiceImpl userService;
     @Autowired
     private FilesStorageService filesStorageService;
+    @Autowired
+    private MessageServiceImpl messageService;
 
 //    @GetMapping("")
 //    public ResponseEntity<?> listALlAttendant(){
@@ -94,80 +99,84 @@ public class AttendantController {
 
     @PostMapping("")
     public ResponseEntity<?> addAttendantForCurrentUser(@ModelAttribute AttendantRequest attendantRequest) throws Exception {
-        Users currentUser = SessionHelper.getCurrentUser();
-        byte[] imageByte= Base64.decodeBase64(attendantRequest.getFaceImage().split("base64,")[1]);
+        try {
+            Users currentUser = SessionHelper.getCurrentUser();
+            byte[] imageByte = Base64.decodeBase64(attendantRequest.getFaceImage().split("base64,")[1]);
 
-        String directory=filesStorageService.convertRelativeToAbsolutePath("/uploads").toString()
-                + "/User"+ currentUser.getEmployee().getId() + "_temp.jpg";
+            String directory = filesStorageService.convertRelativeToAbsolutePath("/uploads").toString()
+                    + "/User" + currentUser.getEmployee().getId() + "_temp.jpg";
 
-        String pictureUrl = Constants.BASE_URL + "/files/images/" + "User"+currentUser.getEmployee().getId() + "_temp.jpg";
-
-
+            String pictureUrl = Constants.BASE_URL + "/files/images/" + "User" + currentUser.getEmployee().getId() + "_temp.jpg";
 
 
-        FileOutputStream file = new FileOutputStream(directory);
-        file.write(imageByte);
-        file.close();
+            FileOutputStream file = new FileOutputStream(directory);
+            file.write(imageByte);
+            file.close();
 
-        URL url = new URL("http://localhost:5000/api/face-recognize");
+            URL url = new URL("http://localhost:5000/api/face-recognize");
 
-        // Mở kết nối HTTP
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            // Mở kết nối HTTP
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
-        // Đặt phương thức yêu cầu là POST
-        connection.setRequestMethod("POST");
+            // Đặt phương thức yêu cầu là POST
+            connection.setRequestMethod("POST");
 
-        // Thiết lập header của yêu cầu
-        connection.setRequestProperty("Content-Type", "application/json");
-        connection.setRequestProperty("Accept", "application/json");
+            // Thiết lập header của yêu cầu
+            connection.setRequestProperty("Content-Type", "application/json");
+            connection.setRequestProperty("Accept", "application/json");
 
-        // Bật việc gửi dữ liệu lên server
-        connection.setDoOutput(true);
+            // Bật việc gửi dữ liệu lên server
+            connection.setDoOutput(true);
 
-        // Tạo một Map để đại diện cho nội dung yêu cầu
-        Map<String, String> requestBodyMap = new HashMap<>();
-        requestBodyMap.put("validFaceImage",currentUser.getEmployee().getAvatar());
-        requestBodyMap.put("image", pictureUrl);
-        System.out.println(pictureUrl);
-        System.out.println(currentUser.getEmployee().getAvatar());
-        // Chuyển đổi Map thành một đối tượng JSON
-        Gson gson = new Gson();
+            // Tạo một Map để đại diện cho nội dung yêu cầu
+            Map<String, String> requestBodyMap = new HashMap<>();
+            requestBodyMap.put("validFaceImage", Constants.BASE_URL + currentUser.getEmployee().getAvatar());
+            requestBodyMap.put("image", pictureUrl);
+            System.out.println(pictureUrl);
+            System.out.println(currentUser.getEmployee().getAvatar());
+            // Chuyển đổi Map thành một đối tượng JSON
+            Gson gson = new Gson();
 
-        String requestBodyJson = gson.toJson(requestBodyMap);
+            String requestBodyJson = gson.toJson(requestBodyMap);
 
-        // Gửi dữ liệu yêu cầu lên server
-        OutputStream outputStream = connection.getOutputStream();
-        outputStream.write(requestBodyJson.getBytes());
-        outputStream.flush();
+            // Gửi dữ liệu yêu cầu lên server
+            OutputStream outputStream = connection.getOutputStream();
+            outputStream.write(requestBodyJson.getBytes());
+            outputStream.flush();
 
-        // Đọc phản hồi từ máy chủ
-        BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-        String inputLine;
-        StringBuffer response = new StringBuffer();
-        while ((inputLine = in.readLine()) != null) {
-            response.append(inputLine);
+            // Đọc phản hồi từ máy chủ
+            BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+            String inputLine;
+            StringBuffer response = new StringBuffer();
+            while ((inputLine = in.readLine()) != null) {
+                response.append(inputLine);
+            }
+            in.close();
+            Map<String, Boolean> responseMap = BaseFunction.stringToMapStringBoolean(response.toString());
+
+            // In ra phản hồi
+            System.out.println(responseMap.get("isReal"));
+            System.out.println("Response: " + response.toString());
+
+            // Đóng kết nối
+            connection.disconnect();
+
+            if (!responseMap.get("isReal")) {
+                return ResponseEntity.badRequest().body("{'message' : 'Face is fake'}");
+            }
+
+            if (!responseMap.get("result")) {
+                return ResponseEntity.badRequest().body("{'message' : 'invalid face'}");
+            }
+            Attendant attendant = new Attendant(attendantRequest);
+            attendant.setUser(currentUser);
+            attendantService.createAttendant(attendant);
+
+            messageService.createMessage(new Message(MessageString.SUCCESS_ATTENDANCE(),"info",currentUser));
+            return ResponseEntity.ok(new AttendantResponse(attendant));
+        }catch (Exception IOException){
+            return ResponseEntity.badRequest().build();
         }
-        in.close();
-        Map<String,Boolean> responseMap = BaseFunction.stringToMapStringBoolean(response.toString());
-
-        // In ra phản hồi
-        System.out.println(responseMap.get("isReal"));
-        System.out.println("Response: " + response.toString());
-
-        // Đóng kết nối
-        connection.disconnect();
-
-        if(!responseMap.get("isReal")){
-            return ResponseEntity.badRequest().body("{'message' : 'Fake is fake'}");
-        }
-
-        if(!responseMap.get("result")){
-            return ResponseEntity.badRequest().body("{'message' : 'invalid face'}");
-        }
-        Attendant attendant = new Attendant(attendantRequest);
-        attendant.setUser(currentUser);
-        attendantService.createAttendant(attendant);
-        return ResponseEntity.ok(new AttendantResponse(attendant));
 
     }
 }

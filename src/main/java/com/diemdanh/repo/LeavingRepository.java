@@ -3,7 +3,10 @@ package com.diemdanh.repo;
 import com.diemdanh.model.Leaving;
 import com.diemdanh.model.Users;
 import com.diemdanh.model.Vacation;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 import java.time.LocalDateTime;
@@ -22,4 +25,11 @@ public interface LeavingRepository extends JpaRepository<Leaving,Long> {
             "AND USER_ID = ?1 " +
             "AND LEAVING_TYPE = ?2", nativeQuery = true)
     List<Leaving> listLeaving12Month(Long userId, Long type);
+
+    Page<Leaving> findAll(Pageable pageable);
+    Page<Leaving> findByUser(Users user,Pageable pageable);
+    Page<Leaving> findByManager(Users user,Pageable pageable);
+    @Modifying
+    @Query(value = "DELETE FROM LEAVING WHERE USER_ID = ?1",nativeQuery = true)
+    void deleteInBulkByUserId(Long userId);
 }

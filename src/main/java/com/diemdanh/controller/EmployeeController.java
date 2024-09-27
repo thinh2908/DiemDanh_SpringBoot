@@ -1,14 +1,19 @@
 package com.diemdanh.controller;
 
+import com.diemdanh.Utils.SessionHelper;
 import com.diemdanh.base.BaseFunction;
 import com.diemdanh.base.Constants;
 import com.diemdanh.base.CoverStringToTime;
+import com.diemdanh.base.MessageString;
 import com.diemdanh.factory.FilesStorageService;
 import com.diemdanh.model.Employee;
+import com.diemdanh.model.Message;
+import com.diemdanh.model.Users;
 import com.diemdanh.request.EmployeeRequest;
 import com.diemdanh.response.EmployeeResponse;
 import com.diemdanh.service.Impl.EmployeeServiceImpl;
 
+import com.diemdanh.service.Impl.MessageServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -35,6 +40,8 @@ public class EmployeeController {
     @Autowired
     FilesStorageService filesStorageService;
 
+    @Autowired
+    MessageServiceImpl messageService;
 
     /*@GetMapping("")
     public ResponseEntity<?> listAllEmployee(){
@@ -87,7 +94,7 @@ public class EmployeeController {
             //Xu ly header
             HttpHeaders responseHeaders = new HttpHeaders();
             responseHeaders.set("Content-Range",
-                "employee "+ rangeList.get(0) + "-" + rangeList.get(1) + "/" + employeeService.listEmployee().size());
+                "employee "+ rangeList.get(0) + "-" + rangeList.get(1) + "/" + pageEmployee.getTotalElements());
             return  ResponseEntity.ok().headers(responseHeaders).body(employeeResponses);
 
 
@@ -116,11 +123,15 @@ public class EmployeeController {
         Employee employee = employeeService.createEmployee(employeeObj);
 
         String avatarDir = "uploads/" + "User" +employee.getId() + ".jpg";
-        String avatarUrl = Constants.BASE_URL + "/files/images/" + "User"+employee.getId() + ".jpg";
+        String avatarUrl = "/files/images/" + "User"+employee.getId() + ".jpg";
         boolean existed = filesStorageService.delete(avatarDir);
         filesStorageService.saveAs(employeeRequest.getAvatar(), avatarDir);
         employee.setAvatar(avatarUrl);
         employeeService.updateEmployee(employee);
+
+        Users currentUser = SessionHelper.getCurrentUser();
+        Message message = new Message(MessageString.SUCCESS_CREATE_EMPLOYEE() + employee.getName(),"success",currentUser);
+        messageService.createMessage(message);
 
         return  ResponseEntity.ok().body(new EmployeeResponse(employee));
     }
@@ -133,7 +144,7 @@ public class EmployeeController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateEmployee(@PathVariable Long id, @RequestBody EmployeeRequest employeeRequest){
+    public ResponseEntity<?> updateEmployee(@PathVariable Long id, @ModelAttribute EmployeeRequest employeeRequest){
         Employee employeeObj = employeeService.getEmployeeById(id);
 
         employeeObj.setJoiningDay(CoverStringToTime.cover(employeeRequest.getJoiningDay()));
@@ -142,6 +153,9 @@ public class EmployeeController {
 
         employeeService.updateEmployee(employeeObj);
 
+        Message message = new Message(MessageString.SUCCESS_UPDATE_EMPLOYEE() + employeeObj.getName(),"success",SessionHelper.getCurrentUser());
+        messageService.createMessage(message);
+
         return ResponseEntity.ok(new EmployeeResponse(employeeObj));
     }
 
@@ -149,6 +163,8 @@ public class EmployeeController {
     public ResponseEntity<?> deleteEmployee(@PathVariable Long id){
         Employee employeeObj = employeeService.getEmployeeById(id);
         employeeService.deleteEmployee(id);
+        Message message = new Message(MessageString.SUCCESS_DELETE_EMPLOYEE() + employeeObj.getName(),"success",SessionHelper.getCurrentUser());
+        messageService.createMessage(message);
         return ResponseEntity.ok(new EmployeeResponse(employeeObj));
     }
 }
